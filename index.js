@@ -1,27 +1,38 @@
-var http = require("http");
-var express = require('express');
-// const { default: axios } = require("axios");
-const Axios = require('axios');
-const { setupCache } = require('axios-cache-interceptor');
+var express = require("express");
+const Axios = require("axios");
+const { setupCache } = require("axios-cache-interceptor");
+const cheerio = require("cheerio");
 
-const axios = setupCache(Axios, {interpretHeader: false}); 
+const axios = setupCache(Axios, { interpretHeader: false });
 
-const app = express()
+const app = express();
 
-app.use(express.static('public'))
+app.use(express.static("public"));
 
-app.get('*', async function(req, res){
+app.get("*", async function (req, res) {
   let rawData;
-  try{
-    rawData = await axios.get("http://flowbangladesh.com" + req.url, {
-      responseType: 'arraybuffer'
-    })
+  try {
+    rawData = await axios.get(
+      "http://md-abus-first-project.webflow.io" + req.url,
+      {
+        responseType: "arraybuffer",
+      }
+    );
     const contentType = rawData.headers.get("content-type");
-    res.setHeader("content-type", contentType)
+    res.setHeader("content-type", contentType);
     body = await rawData.data;
-    res.send(body)
-  }catch(e){
-    res.send()
+
+    if (contentType.includes("text/html")) {
+      const $ = cheerio.load(body.toString());
+      $("body").append(
+        `<style>[class="w-webflow-badge"] {display: none !important;}</style>`
+      );
+      body = $.html();
+    }
+
+    res.send(body);
+  } catch (e) {
+    res.send();
   }
 });
 
