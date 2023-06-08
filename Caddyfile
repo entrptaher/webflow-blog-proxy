@@ -1,0 +1,7 @@
+:8444 {
+    handle /blog* {
+	    reverse_proxy localhost:4000
+    }
+
+    reverse_proxy * localhost:3000
+}
